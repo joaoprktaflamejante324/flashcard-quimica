@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mitos e Verdades | Flashcards de Química no Cotidiano</title>
+    <!-- Carregando Tailwind CSS para utilitários de apoio e fonte Inter -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- =====================================================================
+         ESTILOS CSS DEDICADOS AOS OBJETIVOS DA AULA:
+         1. Variáveis de cores e estilos no CSS
+         2. Layout flexível com Flexbox (display: flex, flex-wrap, gap, etc.)
+         3. Posicionamento no CSS (position: relative e position: absolute)
+         4. Virando o flashcard (perspective, transform-style, backface-visibility,
+            transition e :hover / classe .virado)
+    ====================================================================== -->
+    <style>
+        :root {
+            --cor-fundo: #0f172a;
+            --cor-superficie: #1e293b;
+            --cor-borda: #334155;
+            --cor-texto-principal: #f8fafc;
+            --cor-texto-secundario: #94a3b8;
+            --cor-destaque: #a855f7; /* Roxo inspirado na interface da Alura Start */
+            --cor-destaque-hover: #9333ea;
+            --cor-mito: #ef4444;
+            --cor-mito-fundo: #450a0a;
+            --cor-verdade: #10b981;
+            --cor-verdade-fundo: #064e3b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--cor-fundo);
+            color: var(--cor-texto-principal);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* -----------------------------------------------------------------
+           AULA: LAYOUT FLEXÍVEL (FLEXBOX)
+           Organizando o cabeçalho, filtros e a grade de flashcards
+        ------------------------------------------------------------------ */
+        .cabecalho-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        .barra-controles {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 0.75rem;
+            margin: 1.5rem auto 2.5rem;
+            padding: 0 1rem;
+        }
+
+        /* Container principal dos cards usando Flexbox */
+        .container-flashcards {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: stretch;
+            gap: 2rem;
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 0 1.5rem 4rem;
+        }
+
+        /* -----------------------------------------------------------------
+           AULA: POSICIONAMENTO NO CSS & VIRANDO O FLASHCARD
+           Uso de perspective, position: relative/absolute, transform e transition
+        ------------------------------------------------------------------ */
+        .flashcard-item {
+            /* Flexbox: cada card ocupa uma largura responsiva mantendo proporção */
+            flex: 1 1 320px;
+            max-width: 360px;
+            height: 340px;
+            perspective: 1200px; /* Cria a profundidade 3D */
+            cursor: pointer;
+        }
+
+        .flashcard-conteudo {
+            position: relative; /* Referência para as faces posicionadas de forma absoluta */
+            width: 100%;
+            height: 100%;
+            transition: transform 0.75s cubic-bezier(0.4, 0.2, 0.2, 1);
+            transform-style: preserve-3d; /* Mantém os filhos no espaço 3D */
+            border-radius: 1.25rem;
+            box-shadow: 0 12px 30px -8px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Efeito de virar no :hover (desktop) ou ao clicar/tocar (classe .virado) */
+        .flashcard-item:hover .flashcard-conteudo,
+        .flashcard-item.virado .flashcard-conteudo {
+            transform: rotateY(180deg);
+        }
+
+        /* Faces frontal e traseira sobrepostas com position: absolute */
+        .flashcard-frente,
+        .flashcard-verso {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden; /* Esconde o verso quando rotacionado */
+            -webkit-backface-visibility: hidden;
+            border-radius: 1.25rem;
+            padding: 2rem 1.75rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border: 1px solid var(--cor-borda);
+            overflow: hidden;
+        }
+
+        /* Estilo da Frente do Cartão */
+        .flashcard-frente {
+            background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+        }
+
+        /* Estilo do Verso do Cartão (já começa girado 180 graus) */
+        .flashcard-verso {
+            transform: rotateY(180deg);
+            background: linear-gradient(145deg, #1e293b 0%, #172033 100%);
+        }
+
+        .flashcard-verso.tipo-mito {
+            border-color: rgba(239, 68, 68, 0.5);
+            background: linear-gradient(160deg, #2a1215 0%, #1e293b 100%);
+        }
+
+        .flashcard-verso.tipo-verdade {
+            border-color: rgba(16, 185, 129, 0.5);
+            background: linear-gradient(160deg, #0d2b24 0%, #1e293b 100%);
+        }
+
+        /* Elementos posicionados absolutamente nos cantos dos cards */
+        .etiqueta-numero {
+            position: absolute;
+            top: 1.25rem;
+            left: 1.25rem;
+            background-color: rgba(168, 85, 247, 0.18);
+            color: #d8b4fe;
+            border: 1px solid rgba(168, 85, 247, 0.35);
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            letter-spacing: 0.04em;
+        }
+
+        .etiqueta-categoria {
+            position: absolute;
+            top: 1.25rem;
+            right: 1.25rem;
+            color: var(--cor-texto-secundario);
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .selo-veredito {
+            position: absolute;
+            top: 1.25rem;
+            right: 1.25rem;
+            font-size: 0.8rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 0.3rem 0.9rem;
+            border-radius: 9999px;
+            letter-spacing: 0.06em;
+        }
+
+        .selo-mito {
+            background-color: var(--cor-mito-fundo);
+            color: #fca5a5;
+            border: 1px solid var(--cor-mito);
+        }
+
+        .selo-verdade {
+            background-color: var(--cor-verdade-fundo);
+            color: #6ee7b7;
+            border: 1px solid var(--cor-verdade);
+        }
+
+        /* Botões estilizados */
+        .btn-filtro {
+            background-color: var(--cor-superficie);
+            color: var(--cor-texto-secundario);
+            border: 1px solid var(--cor-borda);
+            padding: 0.6rem 1.25rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-filtro:hover {
+            border-color: var(--cor-destaque);
+            color: var(--cor-texto-principal);
+        }
+
+        .btn-filtro.ativo {
+            background-color: var(--cor-destaque);
+            color: #ffffff;
+            border-color: var(--cor-destaque);
+            box-shadow: 0 4px 14px rgba(168, 85, 247, 0.4);
+        }
+
+        .card-oculto {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- =====================================================================
+         HTML SEMÂNTICO: <header> com hierarquia de títulos, imagem com alt e links
+    ====================================================================== -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-30">
+        <div class="cabecalho-container">
+            <div class="flex items-center gap-3">
+                <!-- Imagem SVG embutida com atributo alt e role acessível -->
+                <div class="w-11 h-11 rounded-xl bg-purple-600/20 border border-purple-500/40 flex items-center justify-center shrink-0">
+                    <img 
+                        src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c084fc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 3h6'/><path d='M10 3v5.5a2 2 0 0 1-.4 1.2L4.2 16.9A2 2 0 0 0 5.8 20h12.4a2 2 0 0 0 1.6-3.1l-5.4-7.2a2 2 0 0 1-.4-1.2V3'/><path d='M7 14h10'/></svg>" 
+                        alt="Ícone de frasco de laboratório representando experimentos de química" 
+                        class="w-6 h-6"
+                    >
+                </div>
+                <div>
+                    <span class="text-xs font-semibold uppercase tracking-wider text-purple-400">Projeto Prático • HTML &amp; CSS</span>
+                    <h1 class="text-lg sm:text-xl font-extrabold text-white tracking-tight">Mitos e Verdades da Química</h1>
+                </div>
+            </div>
+
+            <nav aria-label="Navegação principal" class="flex items-center gap-4 text-sm font-medium">
+                <a href="#secao-flashcards" class="text-slate-300 hover:text-purple-400 transition-colors">Flashcards</a>
+                <a href="#guia-tecnico" class="text-slate-300 hover:text-purple-400 transition-colors">Como foi feito</a>
+                <button 
+                    id="btn-virar-todos" 
+                    type="button"
+                    class="bg-purple-600 hover:bg-purple-500 text-white font-semibold px-4 py-2 rounded-xl transition-all shadow-lg shadow-purple-600/20 text-xs sm:text-sm cursor-pointer"
+                >
+                    Virar Todos
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- =====================================================================
+         HTML SEMÂNTICO: <main> contendo as seções principais da aplicação
+    ====================================================================== -->
+    <main class="flex-1">
+        <!-- Seção de Introdução e Hierarquia de Títulos -->
+        <section class="max-w-3xl mx-auto text-center px-6 pt-10 pb-2">
+            <h2 class="text-2xl sm:text-4xl font-extrabold text-white mb-3 leading-tight">
+                Você sabe diferenciar <span class="text-rose-400">Mitos</span> de <span class="text-emerald-400">Verdades</span>?
+            </h2>
+            <p class="text-slate-400 text-sm sm:text-base max-w-2xl mx-auto">
+                Passe o cursor do mouse sobre cada cartão (ou toque nele no celular) para girar o flashcard em 3D e descobrir a explicação científica por trás de crenças populares do dia a dia.
+            </p>
+        </section>
+
+        <!-- Barra de Filtros com Flexbox -->
+        <section aria-label="Filtros de categorias" class="barra-controles">
+            <button type="button" class="btn-filtro ativo" data-filtro="todos">Todos os Cards (6)</button>
+            <button type="button" class="btn-filtro" data-filtro="mito">Apenas Mitos (3)</button>
+            <button type="button" class="btn-filtro" data-filtro="verdade">Apenas Verdades (3)</button>
+        </section>
+
+        <!-- Seção Principal dos Flashcards usando Flexbox + Posicionamento + Transform 3D -->
+        <section id="secao-flashcards" aria-label="Grade de flashcards interativos" class="container-flashcards">
+
+            <!-- FLASHCARD 1 -->
+            <article class="flashcard-item" data-tipo="mito" tabindex="0" aria-label="Flashcard 1: Misturar água sanitária com detergente limpa melhor?">
+                <div class="flashcard-conteudo">
+                    <!-- Frente -->
+                    <div class="flashcard-frente">
+                        <span class="etiqueta-numero">CARD #01</span>
+                        <span class="etiqueta-categoria">Limpeza</span>
+
+                        <div class="mt-8 text-center">
+                            <img 
+                                src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f43f5e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z'/><line x1='12' y1='9' x2='12' y2='13'/><line x1='12' y1='17' x2='12.01' y2='17'/></svg>" 
+                                alt="Símbolo de alerta químico para misturas perigosas" 
+                                class="w-12 h-12 mx-auto mb-4"
+                            >
+                            <h3 class="text-lg font-bold text-white leading-snug">
+                                Misturar água sanitária com detergente ou vinagre deixa a limpeza mais potente?
+                            </h3>
+                        </div>
+
+                        <p class="text-xs text-center text-purple-300 font-medium">
+                            ↻ Passe o mouse ou toque para virar
+                        </p>
+                    </div>
+
+                    <!-- Verso -->
+                    <div class="flashcard-verso tipo-mito">
+                        <span class="etiqueta-numero">RESPOSTA #01</span>
+                        <span class="selo-veredito selo-mito">✕ Mito Perigoso</span>
+
+                        <div class="mt-9">
+                            <h3 class="text-base font-bold text-rose-300 mb-2">Nunca misture esses produtos!</h3>
+                            <p class="text-sm text-slate-300 leading-relaxed">
+                                A mistura de água sanitária (hipoclorito de sódio) com ácidos como vinagre libera <strong>gás cloro</strong>, altamente tóxico para as vias respiratórias. Com amônia, gera cloraminas irritantes.
+                            </p>
+                        </div>
+
+                        <a href="https://www.gov.br/anvisa" target="_blank" rel="noopener noreferrer" class="text-xs text-rose-300 underline hover:text-rose-200 self-start">
+                            Saiba mais sobre segurança química →
+                        </a>
+                    </div>
+                </div>
+            </article>
+
+            <!-- FLASHCARD 2 -->
+            <article class="flashcard-item" data-tipo="verdade" tabindex="0" aria-label="Flashcard 2: O sal faz a água ferver em uma temperatura mais alta?">
+                <div class="flashcard-conteudo">
+                    <!-- Frente -->
+                    <div class="flashcard-frente">
+                        <span class="etiqueta-numero">CARD #02</span>
+                        <span class="etiqueta-categoria">Culinária</span>
+
+                        <div class="mt-8 text-center">
+                            <img 
+                                src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2v6'/><path d='M12 22v-6'/><path d='M4.93 4.93l4.24 4.24'/><path d='M14.83 14.83l4.24 4.24'/><circle cx='12' cy='12' r='4'/></svg>" 
+                                alt="Ilustração representando calor e ebulição da água" 
+                                class="w-12 h-12 mx-auto mb-4"
+                            >
+                            <h3 class="text-lg font-bold text-white leading-snug">
+                                Adicionar sal na panela faz a água ferver em uma temperatura mais alta?
+                            </h3>
+                        </div>
+
+                        <p class="text-xs text-center text-purple-300 font-medium">
+                            ↻ Passe o mouse ou toque para virar
+                        </p>
+                    </div>
+
+                    <!-- Verso -->
+                    <div class="flashcard-verso tipo-verdade">
+                        <span class="etiqueta-numero">RESPOSTA #02</span>
+                        <span class="selo-veredito selo-verdade">✓ Verdade</span>
+
+                        <div class="mt-9">
+                            <h3 class="text-base font-bold text-emerald-300 mb-2">Efeito chamado Ebulioscopia!</h3>
+                            <p class="text-sm text-slate-300 leading-relaxed">
+                                Ao dissolver sal (soluto não volátil) na água, os íons atraem as moléculas de água, exigindo mais energia térmica para que escapem em forma de vapor. Assim, o ponto de ebulição sobe acima de 100 °C.
+                            </p>
+                        </div>
+
+                        <span class="text-xs text-emerald-300/80 font-medium">
+                            Propriedades Coligativas • Físico-Química
+                        </span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- FLASHCARD 3 -->
+            <article class="flashcard-item" data-tipo="mito" tabindex="0" aria-label="Flashcard 3: Colocar uma colher de metal na boca da garrafa mantém o gás do refrigerante?">
+                <div class="flashcard-conteudo">
+                    <!-- Frente -->
+                    <div class="flashcard-frente">
+                        <span class="etiqueta-numero">CARD #03</span>
+                        <span class="etiqueta-categoria">Gases</span>
+
+                        <div class="mt-8 text-center">
+                            <img 
+                                src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a855f7' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='9' cy='9' r='2'/><circle cx='15' cy='14' r='3'/><circle cx='10' cy='18' r='1.5'/><circle cx='16' cy='7' r='1.5'/></svg>" 
+                                alt="Ilustração de bolhas de gás carbônico efervescente" 
+                                class="w-12 h-12 mx-auto mb-4"
+                            >
+                            <h3 class="text-lg font-bold text-white leading-snug">
+                                Colocar uma colher de metal no gargalo da garrafa mantém o gás do refrigerante?
+                            </h3>
+                        </div>
+
+                        <p class="text-xs text-center text-purple-300 font-medium">
+                            ↻ Passe o mouse ou toque para virar
+                        </p>
+                    </div>
+
+                    <!-- Verso -->
+                    <div class="flashcard-verso tipo-mito">
+                        <span class="etiqueta-numero">RESPOSTA #03</span>
+                        <span class="selo-veredito selo-mito">✕ Mito</span>
+
+                        <div class="mt-9">
+                            <h3 class="text-base font-bold text-rose-300 mb-2">O gás escapa do mesmo jeito!</h3>
+                            <p class="text-sm text-slate-300 leading-relaxed">
+                                O gás carbônico (CO₂) permanece dissolvido graças à pressão interna e à baixa temperatura. Sem tampa vedada, a pressão cai e o CO₂ escapa. O que realmente ajuda é manter a garrafa <strong>bem fechada e gelada</strong>.
+                            </p>
+                        </div>
+
+                        <span class="text-xs text-rose-300/80 font-medium">
+                            Solubilidade dos Gases • Lei de Henry
+                        </span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- FLASHCARD 4 -->
+            <article class="flashcard-item" data-tipo="verdade" tabindex="0" aria-label="Flashcard 4: O limão realmente evita que a maçã cortada escureça?">
+                <div class="flashcard-conteudo">
+                    <!-- Frente -->
+                    <div class="flashcard-frente">
+                        <span class="etiqueta-numero">CARD #04</span>
+                        <span class="etiqueta-categoria">Alimentos</span>
+
+                        <div class="mt-8 text-center">
+                            <img 
+                                src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23eab308' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='9'/><path d='M12 3v18'/><path d='M3 12h18'/><path d='M5.6 5.6l12.8 12.8'/></svg>" 
+                                alt="Ilustração de uma fatia de limão cítrico" 
+                                class="w-12 h-12 mx-auto mb-4"
+                            >
+                            <h3 class="text-lg font-bold text-white leading-snug">
+                                Pingar gotas de limão evita que a maçã cortada fique escura?
+                            </h3>
+                        </div>
+
+                        <p class="text-xs text-center text-purple-300 font-medium">
+                            ↻ Passe o mouse ou toque para virar
+                        </p>
+                    </div>
+
+                    <!-- Verso -->
+                    <div class="flashcard-verso tipo-verdade">
+                        <span class="etiqueta-numero">RESPOSTA #04</span>
+                        <span class="selo-veredito selo-verdade">✓ Verdade</span>
+
+                        <div class="mt-9">
+                            <h3 class="text-base font-bold text-emerald-300 mb-2">Ação antioxidante e ácido cítrico!</h3>
+                            <p class="text-sm text-slate-300 leading-relaxed">
+                                A maçã escurece por oxidação enzimática em contato com o oxigênio. O ácido cítrico reduz o pH da superfície e a vitamina C (ácido ascórbico) atua como <strong>antioxidante</strong>, retardando a reação.
+                            </p>
+                        </div>
+
+                        <span class="text-xs text-emerald-300/80 font-medium">
+                            Reações de Oxirredução • Bioquímica
+                        </span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- FLASHCARD 5 -->
+            <article class="flashcard-item" data-tipo="mito" tabindex="0" aria-label="Flashcard 5: Produtos naturais são livres de substâncias químicas?">
+                <div class="flashcard-conteudo">
+                    <!-- Frente -->
+                    <div class="flashcard-frente">
+                        <span class="etiqueta-numero">CARD #05</span>
+                        <span class="etiqueta-categoria">Conceitos</span>
+
+                        <div class="mt-8 text-center">
+                            <img 
+                                src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2322c55e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z'/><path d='M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12'/></svg>" 
+                                alt="Ilustração de folha verde representando elementos naturais" 
+                                class="w-12 h-12 mx-auto mb-4"
+                            >
+                            <h3 class="text-lg font-bold text-white leading-snug">
+                                Alimentos e cosméticos "100% naturais" são totalmente livres de química?
+                            </h3>
+                        </div>
+
+                        <p class="text-xs text-center text-purple-300 font-medium">
+                            ↻ Passe o mouse ou toque para virar
+                        </p>
+                    </div>
+
+                    <!-- Verso -->
+                    <div class="flashcard-verso tipo-mito">
+                        <span class="etiqueta-numero">RESPOSTA #05</span>
+                        <span class="selo-veredito selo-mito">✕ Mito</span>
+
+                        <div class="mt-9">
+                            <h3 class="text-base font-bold text-rose-300 mb-2">Tudo ao nosso redor é química!</h3>
+                            <p class="text-sm text-slate-300 leading-relaxed">
+                                A própria água (H₂O), o oxigênio que respiramos (O₂) e os nutrientes de uma fruta são substâncias químicas. A diferença real está entre substâncias <strong>naturais</strong> e <strong>sintéticas</strong>, e não na ausência de química.
+                            </p>
+                        </div>
+
+                        <span class="text-xs text-rose-300/80 font-medium">
+                            Matéria e Substâncias • Química Geral
+                        </span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- FLASHCARD 6 -->
+            <article class="flashcard-item" data-tipo="verdade" tabindex="0" aria-label="Flashcard 6: O sabão consegue remover gordura porque tem uma parte que atrai água e outra que atrai óleo?">
+                <div class="flashcard-conteudo">
+                    <!-- Frente -->
+                    <div class="flashcard-frente">
+                        <span class="etiqueta-numero">CARD #06</span>
+                        <span class="etiqueta-categoria">Higiene</span>
+
+                        <div class="mt-8 text-center">
+                            <img 
+                                src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2306b6d4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z'/></svg>" 
+                                alt="Ilustração de gota de água e sabão" 
+                                class="w-12 h-12 mx-auto mb-4"
+                            >
+                            <h3 class="text-lg font-bold text-white leading-snug">
+                                O sabão limpa a gordura porque sua molécula se liga tanto à água quanto ao óleo?
+                            </h3>
+                        </div>
+
+                        <p class="text-xs text-center text-purple-300 font-medium">
+                            ↻ Passe o mouse ou toque para virar
+                        </p>
+                    </div>
+
+                    <!-- Verso -->
+                    <div class="flashcard-verso tipo-verdade">
+                        <span class="etiqueta-numero">RESPOSTA #06</span>
+                        <span class="selo-veredito selo-verdade">✓ Verdade</span>
+
+                        <div class="mt-9">
+                            <h3 class="text-base font-bold text-emerald-300 mb-2">Moléculas Anfipáticas (Micelas)!</h3>
+                            <p class="text-sm text-slate-300 leading-relaxed">
+                                Cada molécula de sabão possui uma cabeça <strong>polar</strong> (hidrofílica, que se liga à água) e uma cauda <strong>apolar</strong> (lipofílica, que envolve a gordura), formando micelas que são levadas pelo enxágue.
+                            </p>
+                        </div>
+
+                        <span class="text-xs text-emerald-300/80 font-medium">
+                            Polaridade Molecular • Química Orgânica
+                        </span>
+                    </div>
+                </div>
+            </article>
+
+        </section>
+
+        <!-- =================================================================
+             SEÇÃO DIDÁTICA: Resumo técnico dos conceitos da aula aplicados
+        ================================================================== -->
+        <section id="guia-tecnico" class="max-w-5xl mx-auto px-6 pb-16">
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 sm:p-8">
+                <h2 class="text-xl sm:text-2xl font-bold text-white mb-2">
+                    Conceitos de HTML &amp; CSS aplicados neste projeto
+                </h2>
+                <p class="text-slate-400 text-sm mb-6">
+                    Veja como cada habilidade da unidade foi utilizada na construção desta página:
+                </p>
+
+                <div class="flex flex-wrap gap-4">
+                    <div class="flex-1 min-w-[220px] bg-slate-800/60 border border-slate-700/70 rounded-xl p-4">
+                        <h3 class="text-purple-400 font-bold text-sm mb-1">1. HTML Semântico</h3>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Uso de <code>&lt;header&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;main&gt;</code>, <code>&lt;section&gt;</code>, <code>&lt;article&gt;</code> e <code>&lt;footer&gt;</code>, além de hierarquia <code>&lt;h1&gt;</code> a <code>&lt;h3&gt;</code> e imagens com <code>alt</code>.
+                        </p>
+                    </div>
+
+                    <div class="flex-1 min-w-[220px] bg-slate-800/60 border border-slate-700/70 rounded-xl p-4">
+                        <h3 class="text-purple-400 font-bold text-sm mb-1">2. Layout com Flexbox</h3>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Aplicação de <code>display: flex</code>, <code>flex-wrap: wrap</code>, <code>justify-content: center</code> e <code>gap</code> para organizar os flashcards de forma fluida em qualquer tela.
+                        </p>
+                    </div>
+
+                    <div class="flex-1 min-w-[220px] bg-slate-800/60 border border-slate-700/70 rounded-xl p-4">
+                        <h3 class="text-purple-400 font-bold text-sm mb-1">3. Posicionamento CSS</h3>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            <code>position: relative</code> no container do cartão e <code>position: absolute</code> para sobrepor a frente e o verso e fixar os selos nos cantos.
+                        </p>
+                    </div>
+
+                    <div class="flex-1 min-w-[220px] bg-slate-800/60 border border-slate-700/70 rounded-xl p-4">
+                        <h3 class="text-purple-400 font-bold text-sm mb-1">4. Virando o Flashcard</h3>
+                        <p class="text-xs text-slate-300 leading-relaxed">
+                            Combinação de <code>perspective</code>, <code>transform-style: preserve-3d</code>, <code>backface-visibility: hidden</code>, <code>transition</code> e <code>:hover</code> com <code>rotateY(180deg)</code>.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- =====================================================================
+         HTML SEMÂNTICO: <footer>
+    ====================================================================== -->
+    <footer class="border-t border-slate-800 py-6 px-6 text-center text-xs text-slate-400">
+        <p>
+            Desenvolvido para prática de <strong>HTML Semântico, Flexbox, Posicionamento e Animações 3D em CSS</strong> • Tema: Mitos e Verdades.
+        </p>
+    </footer>
+
+    <!-- =====================================================================
+         JAVASCRIPT PARA INTERATIVIDADE (TOQUE EM TELAS MÓVEIS, TECLADO E FILTROS)
+    ====================================================================== -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const cards = document.querySelectorAll('.flashcard-item');
+            const botoesFiltro = document.querySelectorAll('.btn-filtro');
+            const btnVirarTodos = document.getElementById('btn-virar-todos');
+            let todosVirados = false;
+
+            // Permite virar o flashcard ao clicar/tocar (essencial para mobile) ou pressionar Enter/Espaço
+            cards.forEach(card => {
+                card.addEventListener('click', (evento) => {
+                    // Evita conflito se o usuário clicar em um link dentro do verso
+                    if (evento.target.tagName.toLowerCase() === 'a') return;
+                    card.classList.toggle('virado');
+                });
+
+                card.addEventListener('keydown', (evento) => {
+                    if (evento.key === 'Enter' || evento.key === ' ') {
+                        evento.preventDefault();
+                        card.classList.toggle('virado');
+                    }
+                });
+            });
+
+            // Botão para virar ou desvirar todos os cards de uma vez
+            btnVirarTodos.addEventListener('click', () => {
+                todosVirados = !todosVirados;
+                cards.forEach(card => {
+                    if (todosVirados) {
+                        card.classList.add('virado');
+                    } else {
+                        card.classList.remove('virado');
+                    }
+                });
+                btnVirarTodos.textContent = todosVirados ? 'Desvirar Todos' : 'Virar Todos';
+            });
+
+            // Filtragem entre Todos, Mitos e Verdades
+            botoesFiltro.forEach(botao => {
+                botao.addEventListener('click', () => {
+                    botoesFiltro.forEach(b => b.classList.remove('ativo'));
+                    botao.classList.add('ativo');
+
+                    const filtro = botao.getAttribute('data-filtro');
+
+                    cards.forEach(card => {
+                        const tipoCard = card.getAttribute('data-tipo');
+                        if (filtro === 'todos' || filtro === tipoCard) {
+                            card.classList.remove('card-oculto');
+                        } else {
+                            card.classList.add('card-oculto');
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
